@@ -137,6 +137,7 @@ export interface Database {
           order_index: number | null
           is_active: boolean | null
           created_at: string | null
+          user_id: string | null
         }
         Insert: {
           id?: string
@@ -146,6 +147,7 @@ export interface Database {
           order_index?: number | null
           is_active?: boolean | null
           created_at?: string | null
+          user_id?: string | null
         }
         Update: {
           id?: string
@@ -155,6 +157,7 @@ export interface Database {
           order_index?: number | null
           is_active?: boolean | null
           created_at?: string | null
+          user_id?: string | null
         }
       }
     }
