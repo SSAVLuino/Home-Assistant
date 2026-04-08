@@ -1,46 +1,49 @@
-import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { createServerSupabase } from '@/lib/supabase/server';
 
-export default async function AssetsPage() {
+export default async function AssetDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const supabase = createServerSupabase();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return notFound();
 
-  const { data: assets, error } = await supabase
+  const { data: asset, error } = await supabase
     .from('assets')
-    .select('id, name, type')
+    .select('id, name, type, details, created_at')
+    .eq('id', params.id)
     .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
+    .single();
 
-  if (error) {
-    throw new Error(error.message);
+  if (error || !asset) {
+    return notFound();
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">I tuoi asset</h1>
+      <h1 className="text-xl font-semibold">{asset.name}</h1>
 
-        <Link
-          href="/assets/new"
-          className="text-sm text-blue-400 hover:text-blue-300"
-        >
-          + Nuovo asset
-        </Link>
-      </div>
+      <p className="text-slate-400 capitalize">
+        Tipo asset: {asset.type}
+      </p>
 
-      {!assets || assets.length === 0 ? (
-        <p className="text-slate-400">
-          Non hai ancora creato nessun asset.
+      {/* Qui in futuro */}
+      <div className="rounded-lg bg-slate-800 p-4">
+        <p className="text-sm text-slate-400">
+          Qui inseriremo:
         </p>
-      ) : (
-        <ul className="space-y-3">
-          {assets.map(asset => (
-            <li key={asset.id}>
-              <Link
+        <ul className="list-disc list-inside text-sm text-slate-300">
+          <li>Scadenze</li>
+          <li>Dettagli specifici</li>
+          <li>Storico</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
