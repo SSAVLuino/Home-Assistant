@@ -3,9 +3,10 @@
 import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { loadValueLists } from '@/lib/valueListsHelper'
+import { checkLimit } from '@/lib/limitsHelper'
 
 function NewAssetForm() {
   const searchParams = useSearchParams()
@@ -62,6 +63,15 @@ function NewAssetForm() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Non autenticato')
 
+      // ⭐ CONTROLLO LIMITI - Verifica se può creare un nuovo asset
+      const limitCheck = await checkLimit(supabase, user.id, 'assets')
+      
+      if (!limitCheck.allowed) {
+        setError(limitCheck.message || 'Limite asset raggiunto')
+        setLoading(false)
+        return // ⚠️ BLOCCA la creazione
+      }
+
       let parsedDetails = null
       if (details.trim()) {
         try {
@@ -71,6 +81,7 @@ function NewAssetForm() {
         }
       }
 
+      // ✅ Limite OK - Procedi con la creazione
       const { error } = await supabase
         .from('assets')
         .insert({
