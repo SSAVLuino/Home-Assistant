@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, Save } from 'lucide-react'
 import Link from 'next/link'
+import { loadValueLists } from '@/lib/valueListsHelper'
 
 function NewDeadlineForm() {
   const searchParams = useSearchParams()
@@ -45,25 +46,13 @@ function NewDeadlineForm() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // Carica categorie dalla value_lists
-      const { data: cats } = await supabase
-        .from('value_lists')
-        .select('*')
-        .eq('category', 'deadline_category')
-        .eq('is_active', true)
-        .order('order_index')
+      // Carica categorie dalla value_lists (default + personali)
+      const cats = await loadValueLists(supabase, 'deadline_category', user.id, true)
+      setCategories(cats)
 
-      setCategories(cats || [])
-
-      // Carica frequenze dalla value_lists
-      const { data: freqs } = await supabase
-        .from('value_lists')
-        .select('*')
-        .eq('category', 'deadline_frequency')
-        .eq('is_active', true)
-        .order('order_index')
-
-      setFrequencies(freqs || [])
+      // Carica frequenze dalla value_lists (default + personali)
+      const freqs = await loadValueLists(supabase, 'deadline_frequency', user.id, true)
+      setFrequencies(freqs)
 
       // Carica progetti dell'utente
       const { data: userProjects } = await supabase
