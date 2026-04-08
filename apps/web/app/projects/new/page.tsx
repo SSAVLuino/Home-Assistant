@@ -42,58 +42,39 @@ export default function NewProjectPage() {
   }
 
   return (
-    <main>
-      <h1 style={{ marginBottom: 16 }}>
-        Crea il tuo progetto
+    <div className="w-full max-w-sm rounded-xl bg-slate-800 p-6 shadow-xl">
+      <h1 className="text-xl font-semibold mb-4">
+        Crea il tuo primo progetto
       </h1>
 
-      <p style={{ marginBottom: 24 }}>
-        Il progetto ti serve per organizzare scadenze,
-        auto e casa.
+      <p className="text-sm text-slate-400 mb-6">
+        Il progetto serve per organizzare scadenze,
+        auto, casa e manutenzioni.
       </p>
 
-      <form onSubmit={handleCreate}>
+      <form onSubmit={handleCreate} className="space-y-4">
         <input
-          placeholder="Nome progetto (es. Casa, Famiglia, Auto)"
+          placeholder="Nome progetto (es. Casa, Famiglia)"
           value={name}
-          required
           onChange={e => setName(e.target.value)}
-          style={inputStyle}
+          required
+          className="w-full rounded-md bg-slate-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
         />
 
         <button
           type="submit"
           disabled={loading}
-          style={buttonStyle}
+          className="w-full rounded-md bg-green-600 py-3 text-sm font-medium hover:bg-green-700 transition"
         >
           {loading ? 'Creazione...' : 'Crea progetto'}
         </button>
 
         {error && (
-          <p style={{ color: 'red', marginTop: 12 }}>
+          <p className="text-sm text-red-400">
             {error}
           </p>
         )}
       </form>
-    </main>
+    </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '12px',
-  marginBottom: 12,
-  fontSize: 16,
-  borderRadius: 6,
-  border: '1px solid #ccc',
-};
-
-const buttonStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '12px',
-  backgroundColor: '#16a34a',
-  color: '#fff',
-  border: 'none',
-  borderRadius: 6,
-  fontSize: 16,
-};
