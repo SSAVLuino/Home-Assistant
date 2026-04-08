@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, Edit, Users, Package, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 import { it } from 'date-fns/locale'
+import ProjectMembers from './ProjectMembers'
 
 async function getProject(id: string) {
   const supabase = createClient()
@@ -166,39 +167,11 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
 
         {/* Membri del progetto */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-gray-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Membri</h2>
-                <span className="text-sm text-gray-500">({project.project_members?.length || 0})</span>
-              </div>
-            </div>
-            <div className="p-6">
-              {project.project_members && project.project_members.length > 0 ? (
-                <div className="space-y-3">
-                  {project.project_members.map((member: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center">
-                          <Users className="h-4 w-4 text-primary-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{member.user_id.substring(0, 8)}...</p>
-                        </div>
-                      </div>
-                      <span className="text-xs bg-gray-100 px-2 py-1 rounded">{member.role}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center text-gray-500 py-4">
-                  <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p className="text-sm">Nessun membro</p>
-                </div>
-              )}
-            </div>
-          </div>
+          <ProjectMembers 
+            projectId={project.id}
+            currentMembers={project.project_members || []}
+            isOwner={project.owner_id === user.id}
+          />
         </div>
       </div>
     </div>
