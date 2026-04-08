@@ -1,1 +1,0 @@
-export default function AssetForm(){return <div>Asset Form</div>}
