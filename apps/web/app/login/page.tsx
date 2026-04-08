@@ -61,16 +61,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          style={{
-            width: '100%',
-            padding: '12px',
-            backgroundColor: '#2563eb',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 6,
-            fontSize: 16,
-            marginTop: 12,
-          }}
+          style={buttonStyle}
         >
           {loading ? 'Accesso...' : 'Login'}
         </button>
@@ -80,19 +71,31 @@ export default function LoginPage() {
             {error}
           </p>
         )}
-      </form>      
-     style={{ marginTop: 16, textAlign: 'center' }}>
-      Non hai un account? <a href="/signup">Registrati</a>
-    </p>
+      </form>
+
+      <p style={{ marginTop: 16, textAlign: 'center' }}>
+        Non hai un account?{' '}
+        <a href="/signup">Registrati</a>
+      </p>
     </main>
   );
 }
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  padding: '12px',
+  padding: 12,
   marginBottom: 12,
   fontSize: 16,
   borderRadius: 6,
   border: '1px solid #ccc',
+};
+
+const buttonStyle: React.CSSProperties = {
+  width: '100%',
+  padding: 12,
+  backgroundColor: '#2563eb',
+  color: '#fff',
+  border: 'none',
+  borderRadius: 6,
+  fontSize: 16,
 };
