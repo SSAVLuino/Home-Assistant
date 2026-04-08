@@ -39,6 +39,7 @@ export default function NewAssetPage() {
       name,
       type,
       project_id: projects.id,
+      user_id: user.id
     });
 
     setLoading(false);
