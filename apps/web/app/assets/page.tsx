@@ -27,10 +27,7 @@ export default async function AssetsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">I tuoi asset</h1>
 
-        <Link
-          href="/assets/new"
-          className="text-sm text-blue-400 hover:text-blue-300"
-        >
+        /assets/new
           + Nuovo asset
         </Link>
       </div>
@@ -43,4 +40,16 @@ export default async function AssetsPage() {
         <ul className="space-y-3">
           {assets.map(asset => (
             <li key={asset.id}>
-              <Link
+              {`/assets/${asset.id}`}
+                <div className="font-medium">{asset.name}</div>
+                <div className="text-sm text-slate-400 capitalize">
+                  Tipo: {asset.type}
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
