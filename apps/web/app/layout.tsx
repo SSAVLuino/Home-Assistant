@@ -7,7 +7,26 @@ export default function RootLayout({
 }) {
   return (
     <html lang="it">
-      <body>{children}</body>
+      <body
+        style={{
+          margin: 0,
+          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont',
+          backgroundColor: '#f5f5f5',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 420,
+            margin: '0 auto',
+            minHeight: '100vh',
+            background: '#fff',
+            padding: '16px',
+          }}
+        >
+          {children}
+        </div>
+      </body>
     </html>
   );
 }
+``
