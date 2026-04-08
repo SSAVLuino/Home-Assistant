@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
-export default function SignupPage() {
+export default function LoginPage() {
   const supabase = createClient();
   const router = useRouter();
 
@@ -12,14 +12,13 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
-  async function handleSignup(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -31,29 +30,16 @@ export default function SignupPage() {
       return;
     }
 
-    setSuccess(true);
-  }
-
-  if (success) {
-    return (
-      <main>
-        <h1>Controlla la tua email</h1>
-        <p>
-          Ti abbiamo inviato un link per confermare
-          la registrazione.
-        </p>
-        <button onClick={() => router.push('/login')}>
-          Vai al login
-        </button>
-      </main>
-    );
+    router.push('/dashboard');
   }
 
   return (
     <main>
-      <h1>Crea account</h1>
+      <h1 style={{ textAlign: 'center', marginBottom: 24 }}>
+        Accedi
+      </h1>
 
-      <form onSubmit={handleSignup}>
+      <form onSubmit={handleLogin}>
         <input
           type="email"
           placeholder="Email"
@@ -68,36 +54,45 @@ export default function SignupPage() {
           placeholder="Password"
           value={password}
           required
-          minLength={6}
           onChange={e => setPassword(e.target.value)}
           style={inputStyle}
         />
 
-        <button type="submit" disabled={loading} style={buttonStyle}>
-          {loading ? 'Creazione...' : 'Registrati'}
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            width: '100%',
+            padding: '12px',
+            backgroundColor: '#2563eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 6,
+            fontSize: 16,
+            marginTop: 12,
+          }}
+        >
+          {loading ? 'Accesso...' : 'Login'}
         </button>
 
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-      </form>
+        {error && (
+          <p style={{ color: 'red', marginTop: 12 }}>
+            {error}
+          </p>
+        )}
+      </form>      
+     style={{ marginTop: 16, textAlign: 'center' }}>
+      Non hai un account? <a href="/signup">Registrati</a>
+    </p>
     </main>
   );
 }
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  padding: 12,
+  padding: '12px',
   marginBottom: 12,
   fontSize: 16,
   borderRadius: 6,
   border: '1px solid #ccc',
-};
-
-const buttonStyle: React.CSSProperties = {
-  width: '100%',
-  padding: 12,
-  backgroundColor: '#16a34a',
-  color: '#fff',
-  border: 'none',
-  borderRadius: 6,
-  fontSize: 16,
 };
