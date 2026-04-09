@@ -6,7 +6,7 @@ import Script from 'next/script'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Scadix - Gestione Asset e Scadenze',
+  title: 'Scadix - Gestione Progetti e Scadenze',
   description: 'Sistema di gestione progetti, asset e scadenze',
   manifest: '/manifest.json',
   themeColor: '#ea580c',
@@ -41,12 +41,36 @@ export default function RootLayout({
   return (
     <html lang="it">
       <head>
+        {/* PWA Manifest */}
         <link rel="manifest" href="/manifest.json" />
+        
+        {/* Theme Colors */}
         <meta name="theme-color" content="#ea580c" />
+        <meta name="msapplication-TileColor" content="#ea580c" />
+        
+        {/* iOS Meta Tags */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Scadix" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        
+        {/* iOS Icons */}
+        <link rel="apple-touch-icon" href="/apple/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/apple/icon-120x120.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/apple/icon-152x152.png" />
+        <link rel="apple-touch-icon" sizes="167x167" href="/apple/icon-167x167.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple/icon-180x180.png" />
+        
+        {/* iOS Splash Screens - iPhone */}
+        <link rel="apple-touch-startup-image" href="/icons/icon-512x512.png" />
+        
+        {/* Windows Tiles */}
+        <meta name="msapplication-config" content="/browserconfig.xml" />
+        <meta name="msapplication-TileImage" content="/windows/icon-150x150.png" />
+        
+        {/* Favicon */}
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
       </head>
       <body className={inter.className}>
         {children}
