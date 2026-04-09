@@ -29,7 +29,7 @@ export default function NewProjectPage() {
       
       // 3. Se limite raggiunto → BLOCCA
       if (!limitCheck.allowed) {
-        setError(limitCheck.message) // Mostra messaggio
+        setError(limitCheck.message || 'Limite raggiunto') // Mostra messaggio
         setLoading(false)
         return // ⚠️ STOP - Non procede
       }
