@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Calendar, CheckCircle2, Clock } from 'lucide-react'
+import { ArrowLeft, Calendar, CheckCircle2, Clock, Shield } from 'lucide-react'
 import { format, parseISO, isBefore } from 'date-fns'
 import { it } from 'date-fns/locale'
 import CompleteDeadlineButton from './CompleteDeadlineButton'
+import { getProjectPermissions, formatRoleName, getRoleBadgeColor } from '@/lib/permissionsHelper'
 
 async function getDeadline(id: string) {
   const supabase = createClient()
@@ -16,7 +17,7 @@ async function getDeadline(id: string) {
     .from('deadlines')
     .select(`
       *,
-      projects(id, name),
+      projects(id, name, owner_id),
       assets(id, name),
       deadline_logs(
         id,
@@ -29,6 +30,14 @@ async function getDeadline(id: string) {
 
   if (error || !deadline) notFound()
 
+  // Calcola i permessi dell'utente sul progetto
+  const permissions = await getProjectPermissions(supabase, deadline.project_id, user.id)
+  
+  // Se non ha accesso, blocca
+  if (!permissions.canView) {
+    notFound()
+  }
+
   // Ordina i logs per data decrescente
   if (deadline.deadline_logs) {
     deadline.deadline_logs.sort((a: any, b: any) => 
@@ -36,7 +45,7 @@ async function getDeadline(id: string) {
     )
   }
 
-  return { deadline, user }
+  return { deadline, user, permissions }
 }
 
 function getDeadlineStatus(dueDate: string) {
@@ -52,7 +61,7 @@ function getDeadlineStatus(dueDate: string) {
 }
 
 export default async function DeadlineDetailPage({ params }: { params: { id: string } }) {
-  const { deadline } = await getDeadline(params.id)
+  const { deadline, user, permissions } = await getDeadline(params.id)
   const status = getDeadlineStatus(deadline.due_date)
 
   return (
@@ -67,13 +76,19 @@ export default async function DeadlineDetailPage({ params }: { params: { id: str
         </Link>
         
         <div className="flex items-start justify-between">
-          <div>
+          <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
                 <Calendar className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{deadline.title}</h1>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-3xl font-bold text-gray-900">{deadline.title}</h1>
+                  <span className={`text-xs px-3 py-1 rounded-full border ${getRoleBadgeColor(permissions.role)}`}>
+                    <Shield className="h-3 w-3 inline mr-1" />
+                    {formatRoleName(permissions.role)}
+                  </span>
+                </div>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={`text-xs px-2 py-1 rounded ${status.color}`}>
                     {status.label}
@@ -87,11 +102,26 @@ export default async function DeadlineDetailPage({ params }: { params: { id: str
             </div>
           </div>
           
-          <CompleteDeadlineButton 
-            deadlineId={deadline.id} 
-            currentDueDate={deadline.due_date}
-            frequency={deadline.frequency}
-          />
+          <div className="flex items-center gap-3">
+            {/* Pulsante Modifica: Owner, Admin, Editor */}
+            {permissions.canEditDeadlines && (
+              <Link
+                href={`/deadlines/${deadline.id}/edit`}
+                className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Modifica
+              </Link>
+            )}
+            
+            {/* Pulsante Completa: Owner, Admin, Editor */}
+            {permissions.canEditDeadlines && (
+              <CompleteDeadlineButton 
+                deadlineId={deadline.id} 
+                currentDueDate={deadline.due_date}
+                frequency={deadline.frequency}
+              />
+            )}
+          </div>
         </div>
       </div>
 
