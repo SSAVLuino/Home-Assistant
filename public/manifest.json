@@ -2,7 +2,7 @@
   "name": "Scadix - Gestione Progetti e Scadenze",
   "short_name": "Scadix",
   "description": "Gestisci progetti, asset e scadenze in modo semplice ed efficace",
-  "start_url": "/dashboard",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#61a5ff",
@@ -95,5 +95,10 @@
         }
       ]
     }
-  ]
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "scope": "/",
+  "lang": "it",
+  "dir": "ltr"
 }
