@@ -114,7 +114,7 @@ export default function DeadlinesPage() {
       const allProjects = [...(ownedProjects || []), ...memberProjects]
       setProjects(allProjects)
 
-      const allProjectIds = [...new Set([...ownedProjectIds, ...memberProjectIds])]
+      const allProjectIds = Array.from(new Set([...ownedProjectIds, ...memberProjectIds]))
       console.log('Total accessible projects:', allProjectIds.length)
 
       // Carica scadenze da tutti i progetti accessibili
