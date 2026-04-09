@@ -11,6 +11,7 @@ import { checkLimit } from '@/lib/limitsHelper'
 function NewDeadlineForm() {
   const searchParams = useSearchParams()
   const projectIdFromQuery = searchParams.get('project_id')
+  const assetIdFromQuery = searchParams.get('asset_id')
   
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
@@ -18,7 +19,7 @@ function NewDeadlineForm() {
   const [frequency, setFrequency] = useState('')
   const [notes, setNotes] = useState('')
   const [projectId, setProjectId] = useState(projectIdFromQuery || '')
-  const [assetId, setAssetId] = useState('')
+  const [assetId, setAssetId] = useState(assetIdFromQuery || '')
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -42,7 +43,7 @@ function NewDeadlineForm() {
     }
   }, [projectId])
 
-  const loadData = async () => {
+  const loadData = async () {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
@@ -86,8 +87,23 @@ function NewDeadlineForm() {
       const allProjects = [...(ownedProjects || []), ...memberProjects]
       setProjects(allProjects)
 
-      // Se c'è un projectId, carica gli asset
-      if (projectIdFromQuery) {
+      // Se c'è un assetId, carica l'asset e il suo progetto
+      if (assetIdFromQuery) {
+        const { data: assetData } = await supabase
+          .from('assets')
+          .select('id, name, project_id')
+          .eq('id', assetIdFromQuery)
+          .single()
+
+        if (assetData && assetData.project_id) {
+          // Imposta il progetto dell'asset
+          setProjectId(assetData.project_id)
+          // Carica gli asset di quel progetto
+          await loadAssets(assetData.project_id)
+        }
+      } 
+      // Altrimenti, se c'è solo un projectId, carica gli asset
+      else if (projectIdFromQuery) {
         await loadAssets(projectIdFromQuery)
       }
     } catch (error: any) {
