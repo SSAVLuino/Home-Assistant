@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Scadix - Gestione Progetti e Scadenze',
   description: 'Sistema di gestione progetti, asset e scadenze',
   manifest: '/manifest.json',
-  themeColor: '#ea580c',
+  themeColor: '#61a5ff',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -50,6 +50,7 @@ export default function RootLayout({
         
         {/* iOS Meta Tags */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Scadix" />
         
