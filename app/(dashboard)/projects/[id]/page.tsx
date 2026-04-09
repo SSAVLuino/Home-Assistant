@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Edit, Users, Package, Calendar } from 'lucide-react'
+import { ArrowLeft, Edit, Users, Package, Calendar, Shield } from 'lucide-react'
 import { format } from 'date-fns'
 import { it } from 'date-fns/locale'
 import ProjectMembers from './ProjectMembers'
+import { getProjectPermissions, formatRoleName, getRoleBadgeColor } from '@/lib/permissionsHelper'
 
 async function getProject(id: string) {
   const supabase = createClient()
@@ -38,11 +39,19 @@ async function getProject(id: string) {
 
   if (error || !project) notFound()
 
-  return { project, user }
+  // Calcola i permessi dell'utente
+  const permissions = await getProjectPermissions(supabase, id, user.id)
+  
+  // Se non ha accesso, blocca
+  if (!permissions.canView) {
+    notFound()
+  }
+
+  return { project, user, permissions }
 }
 
 export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
-  const { project, user } = await getProject(params.id)
+  const { project, user, permissions } = await getProject(params.id)
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -56,8 +65,14 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
         </Link>
         
         <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
+              <span className={`text-xs px-3 py-1 rounded-full border ${getRoleBadgeColor(permissions.role)}`}>
+                <Shield className="h-3 w-3 inline mr-1" />
+                {formatRoleName(permissions.role)}
+              </span>
+            </div>
             {project.description && (
               <p className="text-gray-600 mt-2">{project.description}</p>
             )}
@@ -66,13 +81,15 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
             </p>
           </div>
           
-          <Link
-            href={`/projects/${project.id}/edit`}
-            className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
-          >
-            <Edit className="h-5 w-5" />
-            Modifica
-          </Link>
+          {permissions.canEdit && (
+            <Link
+              href={`/projects/${project.id}/edit`}
+              className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              <Edit className="h-5 w-5" />
+              Modifica
+            </Link>
+          )}
         </div>
       </div>
 
@@ -86,12 +103,14 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 <h2 className="text-lg font-semibold text-gray-900">Asset</h2>
                 <span className="text-sm text-gray-500">({project.assets?.length || 0})</span>
               </div>
-              <Link
-                href={`/assets/new?project_id=${project.id}`}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-              >
-                + Aggiungi
-              </Link>
+              {permissions.canCreateAssets && (
+                <Link
+                  href={`/assets/new?project_id=${project.id}`}
+                  className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  + Aggiungi
+                </Link>
+              )}
             </div>
             <div className="divide-y divide-gray-200">
               {project.assets && project.assets.length > 0 ? (
@@ -129,12 +148,14 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 <h2 className="text-lg font-semibold text-gray-900">Scadenze</h2>
                 <span className="text-sm text-gray-500">({project.deadlines?.length || 0})</span>
               </div>
-              <Link
-                href={`/deadlines/new?project_id=${project.id}`}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-              >
-                + Aggiungi
-              </Link>
+              {permissions.canCreateDeadlines && (
+                <Link
+                  href={`/deadlines/new?project_id=${project.id}`}
+                  className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  + Aggiungi
+                </Link>
+              )}
             </div>
             <div className="divide-y divide-gray-200">
               {project.deadlines && project.deadlines.length > 0 ? (
