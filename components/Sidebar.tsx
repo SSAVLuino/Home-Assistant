@@ -87,8 +87,8 @@ export default function Sidebar() {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="p-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-primary-600">Asset Manager</h1>
-            <p className="text-sm text-gray-500 mt-1">Gestione Progetti</p>
+            <h1 className="text-2xl font-bold text-primary-600">SCADIX</h1>
+            <p className="text-sm text-gray-500 mt-1">Scadix - Gestione Asset e Scadenze</p>
           </div>
 
           {/* Navigation */}
