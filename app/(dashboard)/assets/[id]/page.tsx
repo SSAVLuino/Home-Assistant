@@ -1,9 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Edit, Calendar, Package } from 'lucide-react'
+import { ArrowLeft, Edit, Calendar, Package, Shield } from 'lucide-react'
 import { format } from 'date-fns'
 import { it } from 'date-fns/locale'
+import { getProjectPermissions, formatRoleName, getRoleBadgeColor } from '@/lib/permissionsHelper'
 
 async function getAsset(id: string) {
   const supabase = createClient()
@@ -18,7 +19,7 @@ async function getAsset(id: string) {
       projects(
         id,
         name,
-        description
+        owner_id
       ),
       deadlines(
         id,
@@ -32,14 +33,22 @@ async function getAsset(id: string) {
 
   if (error || !asset) notFound()
 
-  return { asset, user }
+  // Calcola i permessi dell'utente sul progetto
+  const permissions = await getProjectPermissions(supabase, asset.project_id, user.id)
+  
+  // Se non ha accesso, blocca
+  if (!permissions.canView) {
+    notFound()
+  }
+
+  return { asset, user, permissions }
 }
 
 export default async function AssetDetailPage({ params }: { params: { id: string } }) {
-  const { asset } = await getAsset(params.id)
+  const { asset, user, permissions } = await getAsset(params.id)
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-5xl mx-auto">
       <div className="mb-6">
         <Link
           href="/assets"
@@ -50,13 +59,19 @@ export default async function AssetDetailPage({ params }: { params: { id: string
         </Link>
         
         <div className="flex items-start justify-between">
-          <div>
+          <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <Package className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{asset.name}</h1>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-3xl font-bold text-gray-900">{asset.name}</h1>
+                  <span className={`text-xs px-3 py-1 rounded-full border ${getRoleBadgeColor(permissions.role)}`}>
+                    <Shield className="h-3 w-3 inline mr-1" />
+                    {formatRoleName(permissions.role)}
+                  </span>
+                </div>
                 <p className="text-gray-600">{asset.type}</p>
               </div>
             </div>
@@ -65,48 +80,56 @@ export default async function AssetDetailPage({ params }: { params: { id: string
             </p>
           </div>
           
-          <Link
-            href={`/assets/${asset.id}/edit`}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <Edit className="h-5 w-5" />
-            Modifica
-          </Link>
+          {/* Pulsante Modifica: Owner, Admin, Editor */}
+          {permissions.canEditAssets && (
+            <Link
+              href={`/assets/${asset.id}/edit`}
+              className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Edit className="h-5 w-5" />
+              Modifica
+            </Link>
+          )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Informazioni principali */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Dettagli */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Progetto</h2>
-            {asset.projects ? (
-              <Link
-                href={`/projects/${asset.projects.id}`}
-                className="block p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors"
-              >
-                <h3 className="font-medium text-primary-600">{asset.projects.name}</h3>
-                {asset.projects.description && (
-                  <p className="text-sm text-gray-600 mt-1">{asset.projects.description}</p>
-                )}
-              </Link>
-            ) : (
-              <p className="text-gray-500">Nessun progetto associato</p>
-            )}
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Dettagli</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Progetto</label>
+                <p className="text-gray-900 mt-1">
+                  <Link 
+                    href={`/projects/${asset.projects?.id}`}
+                    className="text-primary-600 hover:text-primary-700"
+                  >
+                    {asset.projects?.name || 'N/A'}
+                  </Link>
+                </p>
+              </div>
+
+              {asset.details && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Informazioni Aggiuntive</label>
+                  <div className="mt-2 bg-gray-50 rounded-lg p-4">
+                    {typeof asset.details === 'object' ? (
+                      <pre className="text-sm text-gray-900 whitespace-pre-wrap font-mono">
+                        {JSON.stringify(asset.details, null, 2)}
+                      </pre>
+                    ) : (
+                      <p className="text-sm text-gray-900">{asset.details}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {asset.details && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Dettagli</h2>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
-                  {typeof asset.details === 'object' 
-                    ? JSON.stringify(asset.details, null, 2)
-                    : asset.details}
-                </pre>
-              </div>
-            </div>
-          )}
-
+          {/* Scadenze associate */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -115,7 +138,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
                 <span className="text-sm text-gray-500">({asset.deadlines?.length || 0})</span>
               </div>
               <Link
-                href={`/deadlines/new?asset_id=${asset.id}&project_id=${asset.project_id}`}
+                href={`/deadlines/new?project_id=${asset.project_id}`}
                 className="text-sm text-orange-600 hover:text-orange-700 font-medium"
               >
                 + Aggiungi
@@ -150,23 +173,28 @@ export default async function AssetDetailPage({ params }: { params: { id: string
           </div>
         </div>
 
+        {/* Sidebar con info rapide */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Informazioni</h2>
-            <dl className="space-y-4">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Riepilogo</h3>
+            <dl className="space-y-3">
               <div>
-                <dt className="text-sm font-medium text-gray-500">Tipo</dt>
-                <dd className="mt-1 text-sm text-gray-900">{asset.type}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Data Creazione</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {format(new Date(asset.created_at), 'dd MMMM yyyy', { locale: it })}
+                <dt className="text-sm font-medium text-gray-500">Tipo Asset</dt>
+                <dd className="text-sm text-gray-900 mt-1">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {asset.type}
+                  </span>
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">ID</dt>
-                <dd className="mt-1 text-xs text-gray-600 font-mono break-all">{asset.id}</dd>
+                <dt className="text-sm font-medium text-gray-500">Scadenze Attive</dt>
+                <dd className="text-2xl font-bold text-gray-900 mt-1">{asset.deadlines?.length || 0}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500">Creato il</dt>
+                <dd className="text-sm text-gray-900 mt-1">
+                  {format(new Date(asset.created_at), 'dd MMM yyyy', { locale: it })}
+                </dd>
               </div>
             </dl>
           </div>
