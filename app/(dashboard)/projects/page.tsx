@@ -12,7 +12,11 @@ async function getProjects() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: projects, error } = await supabase
+  console.log('=== getProjects Debug ===')
+  console.log('user.id:', user.id)
+
+  // Query 1: Progetti di cui sei proprietario
+  const { data: ownedProjects, error: ownedError } = await supabase
     .from('projects')
     .select(`
       *,
@@ -20,12 +24,57 @@ async function getProjects() {
       assets(count)
     `)
     .eq('owner_id', user.id)
-    .order('created_at', { ascending: false })
 
-  return { projects: projects || [] }
+  console.log('Owned projects:', ownedProjects?.length || 0)
+  if (ownedError) console.error('Owned error:', ownedError)
+
+  // Query 2: ID progetti in cui sei membro
+  const { data: memberships, error: memberError } = await supabase
+    .from('project_members')
+    .select('project_id, role')
+    .eq('user_id', user.id)
+
+  console.log('Memberships found:', memberships?.length || 0, memberships)
+  if (memberError) console.error('Member error:', memberError)
+
+  // Query 3: Carica i progetti da memberships
+  let memberProjects = []
+  if (memberships && memberships.length > 0) {
+    const projectIds = memberships.map(m => m.project_id)
+    console.log('Loading projects for IDs:', projectIds)
+    
+    const { data, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        project_members(count),
+        assets(count)
+      `)
+      .in('id', projectIds)
+
+    console.log('Member projects loaded:', data?.length || 0)
+    if (error) console.error('Member projects error:', error)
+    
+    memberProjects = data || []
+  }
+
+  // Combina e rimuovi duplicati
+  const allProjects = [...(ownedProjects || []), ...memberProjects]
+  const uniqueProjects = Array.from(
+    new Map(allProjects.map(p => [p.id, p])).values()
+  ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+  console.log('Total unique projects:', uniqueProjects.length)
+  console.log('=== End Debug ===\n')
+
+  return { projects: uniqueProjects }
 }
 
 export default async function ProjectsPage() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+  
   const { projects } = await getProjects()
 
   return (
@@ -73,8 +122,17 @@ export default async function ProjectsPage() {
                   </div>
                 </div>
 
-                <h3 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                <h3 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2 line-clamp-2 flex items-center gap-2">
                   {project.name}
+                  {project.owner_id === user.id ? (
+                    <span className="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded">
+                      Owner
+                    </span>
+                  ) : (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                      Membro
+                    </span>
+                  )}
                 </h3>
                 
                 {project.description && (
