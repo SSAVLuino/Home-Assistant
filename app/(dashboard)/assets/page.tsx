@@ -34,7 +34,7 @@ async function getAssets() {
   console.log('Member project IDs:', memberProjectIds.length)
 
   // Combina tutti gli ID progetti accessibili
-  const allProjectIds = [...new Set([...ownedProjectIds, ...memberProjectIds])]
+  const allProjectIds = Array.from(new Set([...ownedProjectIds, ...memberProjectIds]))
   console.log('Total accessible projects:', allProjectIds.length)
 
   // Query 3: Carica asset da tutti i progetti accessibili
