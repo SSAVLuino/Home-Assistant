@@ -184,16 +184,17 @@ export async function canEditValueLists(
       .eq('subscription_status', 'active')
       .single()
 
-    if (error || !profile?.subscription_plans) {
+    if (error || !profile?.subscription_plans || profile.subscription_plans.length === 0) {
       return false
     }
 
-    return profile.subscription_plans.can_edit_value_lists || false
+    return profile.subscription_plans[0].can_edit_value_lists || false
   } catch (error) {
     console.error('canEditValueLists error:', error)
     return false
   }
 }
+La differenza: profile.subscription_plans[0] accede al primo elemento dell'array.
 
 /**
  * Formatta i limiti per display UI
