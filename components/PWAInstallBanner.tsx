@@ -21,34 +21,60 @@ export default function PWAInstallBanner() {
       return // Già installato, non mostrare banner
     }
 
-    // Controlla se l'utente ha già nascosto il banner
-    const bannerDismissed = localStorage.getItem('pwa-banner-dismissed')
+    // Controlla se l'utente ha già nascosto il banner (usa sessionStorage invece di localStorage)
+    const bannerDismissed = sessionStorage.getItem('pwa-banner-dismissed')
     if (bannerDismissed) {
       return
     }
 
     // Ascolta evento beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('🎯 beforeinstallprompt event captured')
       e.preventDefault()
       setDeferredPrompt(e as BeforeInstallPromptEvent)
-      setShowBanner(true)
+      
+      // Mostra banner dopo 2 secondi per dare tempo al SW di registrarsi
+      setTimeout(() => {
+        setShowBanner(true)
+      }, 2000)
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
 
+    // Listener per quando app viene installata
+    const handleAppInstalled = () => {
+      console.log('✅ PWA installata!')
+      setShowBanner(false)
+      setDeferredPrompt(null)
+    }
+
+    window.addEventListener('appinstalled', handleAppInstalled)
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
     }
   }, [])
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return
+    if (!deferredPrompt) {
+      console.log('❌ No deferred prompt available')
+      return
+    }
 
-    deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
+    console.log('🚀 Calling prompt()')
+    try {
+      await deferredPrompt.prompt()
+      const { outcome } = await deferredPrompt.userChoice
+      console.log(`✨ User choice: ${outcome}`)
 
-    if (outcome === 'accepted') {
-      console.log('PWA installata!')
+      if (outcome === 'accepted') {
+        console.log('✅ User accepted install')
+      } else {
+        console.log('❌ User dismissed install')
+      }
+    } catch (error) {
+      console.error('Error during install:', error)
     }
 
     setDeferredPrompt(null)
@@ -56,11 +82,13 @@ export default function PWAInstallBanner() {
   }
 
   const handleDismiss = () => {
+    console.log('👋 User dismissed banner')
     setShowBanner(false)
-    localStorage.setItem('pwa-banner-dismissed', 'true')
+    // Usa sessionStorage invece di localStorage (disponibile anche in SW context)
+    sessionStorage.setItem('pwa-banner-dismissed', 'true')
   }
 
-  if (!showBanner) return null
+  if (!showBanner || !deferredPrompt) return null
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-md z-50 animate-slide-up">
