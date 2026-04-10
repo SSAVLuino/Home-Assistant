@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowLeft, Check } from 'lucide-react'
+import { ArrowLeft, Check, Mail } from 'lucide-react'
 import Link from 'next/link'
 
 interface Plan {
@@ -20,6 +20,8 @@ interface Plan {
 export default function UpgradePage() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   const supabase = createClient()
@@ -33,7 +35,9 @@ export default function UpgradePage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // Carica user plan attuale
+      setUserEmail(user.email)
+      setUserId(user.id)
+
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('plan_id')
@@ -42,7 +46,6 @@ export default function UpgradePage() {
 
       if (profile) setCurrentPlanId(profile.plan_id)
 
-      // Carica tutti i piani
       const { data: allPlans } = await supabase
         .from('subscription_plans')
         .select('*')
@@ -65,8 +68,8 @@ export default function UpgradePage() {
   if (loading) return <div className="p-12 text-center">Caricamento...</div>
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50 p-6 flex flex-col">
+      <div className="max-w-6xl mx-auto flex-1">
         <Link
           href="/dashboard"
           className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8"
@@ -105,7 +108,7 @@ export default function UpgradePage() {
                   )}
                   {!isFree && plan.price && (
                     <div className="mt-4">
-                      <span className="text-3xl font-bold">€{plan.price}</span>
+                      <span className="text-3xl font-bold">€{(plan.price * 12).toFixed(2)}</span>
                       <span className={`text-sm ${isCurrentPlan ? 'text-primary-100' : 'text-gray-600'}`}>
                         /anno
                       </span>
@@ -151,21 +154,27 @@ export default function UpgradePage() {
                     </li>
                   </ul>
 
-                  {/* Button */}
-                  <button
-                    disabled={isCurrentPlan}
-                    className={`w-full mt-6 py-2 px-4 rounded-lg font-semibold transition-colors ${
-                      isCurrentPlan
-                        ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                        : 'bg-primary-600 text-white hover:bg-primary-700'
-                    }`}
-                  >
-                    {isCurrentPlan ? '✓ Piano Attuale' : 'Seleziona'}
-                  </button>
+                  {isCurrentPlan && (
+                    <div className="mt-6 text-center py-2 px-4 rounded-lg bg-primary-100 text-primary-700 font-semibold">
+                      ✓ Piano Attuale
+                    </div>
+                  )}
                 </div>
               </div>
             )
           })}
+        </div>
+      </div>
+
+      {/* Banner Footer */}
+      <div className="mt-12 max-w-6xl mx-auto w-full bg-gradient-to-r from-primary-50 to-green-50 rounded-xl p-6 border-2 border-primary-200">
+        <div className="flex items-center gap-4">
+          <Mail className="h-8 w-8 text-primary-600 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-gray-700">
+              Per cambiare piano, scrivi a <a href="mailto:scadix@cesena.biz" className="font-semibold text-primary-600 hover:text-primary-700">scadix@cesena.biz</a>
+            </p>
+          </div>
         </div>
       </div>
     </div>
