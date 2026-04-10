@@ -1,20 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { ArrowLeft, Check, Mail } from 'lucide-react'
 import Link from 'next/link'
+import { ArrowLeft, Mail, Check } from 'lucide-react'
+import Image from 'next/image'
 
 export default async function UpgradePage() {
-  const supabase = await createClient()
+  const supabase = createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('plan_id')
-    .eq('user_id', user.id)
-    .single()
-
+  // Carica piani
   const { data: plans } = await supabase
     .from('subscription_plans')
     .select('*')
@@ -22,59 +18,103 @@ export default async function UpgradePage() {
     .not('name', 'eq', 'admin')
     .order('display_order')
 
+  // Carica piano attuale utente
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('plan_id')
+    .eq('user_id', user.id)
+    .single()
+
   const currentPlanId = profile?.plan_id
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-green-50 p-6">
       <div className="max-w-6xl mx-auto">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+        >
           <ArrowLeft className="h-4 w-4" />
           Torna alla dashboard
         </Link>
 
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Scegli il tuo piano</h1>
-        <p className="text-xl text-gray-600 mb-12">Seleziona il piano che meglio si adatta alle tue esigenze</p>
+        <div className="flex justify-center mb-6">
+          <Image
+            src="/scadix.png"
+            alt="Scadix Logo"
+            width={120}
+            height={120}
+            className="rounded-2xl shadow-lg"
+            priority
+          />
+        </div>
 
+        <h1 className="text-4xl font-bold text-gray-900 mb-2 text-center">
+          Passa a Scadix Premium
+        </h1>
+        <p className="text-xl text-gray-600 text-center mb-12">
+          Sblocca tutte le funzionalità avanzate
+        </p>
+
+        {/* Grid Piani */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {plans?.map((plan: any) => (
             <div
               key={plan.id}
-              className={`rounded-xl border-2 overflow-hidden ${
+              className={`rounded-2xl shadow-xl border-2 overflow-hidden ${
                 plan.id === currentPlanId
-                  ? 'border-primary-600 bg-primary-50 shadow-lg'
-                  : 'border-gray-200 bg-white'
+                  ? 'border-primary-600 bg-gradient-to-br from-primary-50 to-white'
+                  : 'border-gray-200 bg-white hover:shadow-2xl transition-shadow'
               }`}
             >
-              <div className={`p-6 ${plan.id === currentPlanId ? 'bg-primary-600 text-white' : 'bg-gray-50'}`}>
-                <h2 className="text-2xl font-bold mb-2">{plan.label}</h2>
-                {plan.description && <p className="text-sm">{plan.description}</p>}
-                <div className="mt-4 text-3xl font-bold">
-                  {plan.price === 0 || !plan.price ? 'Gratuito' : `€${(plan.price * 12).toFixed(2)}/anno`}
-                </div>
+              <div className={`p-8 text-white ${plan.id === currentPlanId ? 'bg-gradient-to-r from-primary-600 to-green-600' : 'bg-gradient-to-r from-primary-600 to-green-600'}`}>
+                <h2 className="text-3xl font-bold">{plan.label}</h2>
+                {plan.description && <p className="text-primary-100 mt-2">{plan.description}</p>}
               </div>
 
-              <div className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Cosa incluye:</h3>
-                <ul className="space-y-3 text-sm">
+              <div className="p-8">
+                <div className="mb-6">
+                  <span className="text-4xl font-bold text-gray-900">
+                    {plan.price === 0 || !plan.price ? 'Gratuito' : `€${(plan.price * 12).toFixed(2)}`}
+                  </span>
+                  {plan.price !== 0 && plan.price && <span className="text-gray-600 ml-2">/anno</span>}
+                </div>
+
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Cosa ottieni:</h3>
+                
+                <ul className="space-y-4 mb-8">
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span><strong>Progetti:</strong> {plan.max_projects === null ? 'Illimitati' : plan.max_projects}</span>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Progetti</h4>
+                      <p className="text-sm text-gray-600">{plan.max_projects === null ? 'Illimitati' : plan.max_projects}</p>
+                    </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span><strong>Asset:</strong> {plan.max_assets === null ? 'Illimitati' : plan.max_assets}</span>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Asset</h4>
+                      <p className="text-sm text-gray-600">{plan.max_assets === null ? 'Illimitati' : plan.max_assets}</p>
+                    </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span><strong>Scadenze:</strong> {plan.max_deadlines === null ? 'Illimitati' : plan.max_deadlines}</span>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Scadenze</h4>
+                      <p className="text-sm text-gray-600">{plan.max_deadlines === null ? 'Illimitati' : plan.max_deadlines}</p>
+                    </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className={`h-5 w-5 flex-shrink-0 mt-0.5 ${plan.can_edit_value_lists ? 'text-green-600' : 'text-gray-300'}`} />
-                    <span><strong>Value Lists:</strong> {plan.can_edit_value_lists ? 'Sì' : 'No'}</span>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Value Lists</h4>
+                      <p className="text-sm text-gray-600">{plan.can_edit_value_lists ? 'Modificabili' : 'Non disponibile'}</p>
+                    </div>
                   </li>
                 </ul>
+
                 {plan.id === currentPlanId && (
-                  <div className="mt-6 text-center py-2 px-4 rounded-lg bg-primary-600 text-white font-semibold">
+                  <div className="text-center py-3 px-4 rounded-lg bg-primary-100 text-primary-700 font-semibold">
                     ✓ Piano Attuale
                   </div>
                 )}
@@ -83,20 +123,21 @@ export default async function UpgradePage() {
           ))}
         </div>
 
-        <div className="bg-gradient-to-r from-primary-50 to-green-50 rounded-xl p-8 border-2 border-primary-200">
+        {/* Banner Email */}
+        <div className="bg-gradient-to-r from-primary-50 to-green-50 rounded-xl p-8 border-2 border-primary-200 max-w-2xl mx-auto">
           <div className="flex items-start gap-4">
             <Mail className="h-12 w-12 text-primary-600 flex-shrink-0" />
-            <div className="flex-1">
+            <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Richiedi l'upgrade</h3>
-              <p className="text-gray-700 mb-4">Per passare a un piano superiore, invia una email a:</p>
+              <p className="text-gray-700 mb-4">Per passare a un piano superiore, contattaci:</p>
               
                 href={`mailto:scadix@cesena.biz?subject=Richiesta upgrade - Scadix&body=Ciao,%0D%0A%0D%0ASono interessato a passare a un piano superiore di Scadix.%0D%0A%0D%0AAccount: ${user.email}%0D%0AID: ${user.id}%0D%0A%0D%0AAttendo vostre comunicazioni.%0D%0A%0D%0AGrazie`}
-                className="inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 font-semibold text-lg"
+                className="inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors font-semibold text-lg"
               >
                 <Mail className="h-5 w-5" />
                 scadix@cesena.biz
               </a>
-              <p className="text-sm text-gray-600 mt-4">Ti risponderemo entro 24 ore con i dettagli per completare l'upgrade</p>
+              <p className="text-sm text-gray-600 mt-4">Ti risponderemo entro 24 ore</p>
             </div>
           </div>
         </div>
