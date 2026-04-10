@@ -17,8 +17,6 @@ interface ValueListItem {
 const CATEGORIES = [
   { value: 'asset_type', label: 'Tipi Asset' },
   { value: 'deadline_category', label: 'Categorie Scadenze' },
-  { value: 'deadline_frequency', label: 'Frequenze Scadenze' },
-  { value: 'member_role', label: 'Ruoli Membri' },
 ]
 
 export default function ValueListsPage() {
