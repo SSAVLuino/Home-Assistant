@@ -1,5 +1,6 @@
-const CACHE_NAME = 'scadix-v1';
-const urlsToCache = [ 
+const CACHE_NAME = 'scadix-v2';
+const urlsToCache = [
+  '/',
   '/dashboard',
   '/projects',
   '/assets',
