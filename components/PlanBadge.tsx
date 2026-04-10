@@ -184,78 +184,7 @@ export default function PlanBadge() {
             }`} />
           </button>
 
-          {/* Expanded Content */}
-          {expandedUpgrades && (
-            <div className="mt-2 space-y-2 pt-2 border-t border-current border-opacity-20">
-              {/* Features Needed */}
-              {hasAnyUpgradeNeed && (
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-gray-700">Feature necessarie:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {Object.entries(upgradeSuggestion.shouldUpgrade).map(([key, needed]) => 
-                      needed && (
-                        <span 
-                          key={key}
-                          className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded"
-                        >
-                          {formatFeatureName(key as any)}
-                        </span>
-                      )
-                    )}
-                  </div>
-                </div>
-              )}
 
-              {/* Recommended Plan */}
-              {upgradeSuggestion.nextRecommendedPlan && (
-                <div className="space-y-1 pt-2">
-                  <p className="text-xs font-semibold text-gray-700">Piano consigliato:</p>
-                  <Link
-                    href="/upgrade"
-                    className="block text-xs bg-white bg-opacity-60 hover:bg-opacity-100 transition-colors px-3 py-2 rounded font-medium border border-current border-opacity-30"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span>{upgradeSuggestion.nextRecommendedPlan.label}</span>
-                      <ChevronRight className="h-3 w-3" />
-                    </div>
-                    {upgradeSuggestion.nextRecommendedPlan.description && (
-                      <p className="text-xs opacity-75 mt-1">{upgradeSuggestion.nextRecommendedPlan.description}</p>
-                    )}
-                  </Link>
-                </div>
-              )}
-
-              {/* All Available Plans */}
-              {upgradeSuggestion.availableUpgrades.length > 1 && (
-                <div className="space-y-1 pt-2">
-                  <p className="text-xs font-semibold text-gray-700">Tutti gli upgrade:</p>
-                  <div className="flex flex-col gap-1">
-                    {upgradeSuggestion.availableUpgrades.map((plan) => (
-                      <Link
-                        key={plan.id}
-                        href="/upgrade"
-                        className="text-xs bg-white bg-opacity-40 hover:bg-opacity-70 transition-colors px-2 py-1 rounded text-gray-700"
-                      >
-                        {plan.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Fallback CTA */}
-      {!isPremium && (!upgradeSuggestion || upgradeSuggestion.availableUpgrades.length === 0) && (
-        <Link
-          href="/upgrade"
-          className="block text-center text-xs bg-white bg-opacity-50 hover:bg-opacity-100 transition-colors py-2 px-3 border-t text-gray-700 font-medium"
-        >
-          Passa a Premium →
-        </Link>
-      )}
     </div>
   )
 }
