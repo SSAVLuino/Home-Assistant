@@ -105,12 +105,12 @@ export default function AdminUsersPage() {
 		])
 
 		// Carica email da auth.users
-		const { data: authUser } = await supabase.auth.admin.getUserById(profile.user_id)
+		const { data: { user: authUser } } = await supabase.auth.admin.getUserById(profile.user_id)
 
 		return {
 		  ...profile,
 		  plan_name: profile.subscription_plans?.label || 'N/A',
-		  email: authUser?.user_metadata?.email || authUser?.email || 'N/A',
+		  email: authUser?.email || 'N/A',
 		  projects_count: projectsCount || 0,
 		  assets_count: assetsCount || 0,
 		}
