@@ -22,6 +22,7 @@ function NewDeadlineForm() {
   const [assetId, setAssetId] = useState(assetIdFromQuery || '')
   
   const [loading, setLoading] = useState(false)
+  const [loadingAssets, setLoadingAssets] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
   const [categories, setCategories] = useState<any[]>([])
@@ -104,6 +105,9 @@ function NewDeadlineForm() {
   }
 
   const loadAssets = async (projId: string) => {
+    setLoadingAssets(true)
+    setAssets([])
+    setAssetId('')
     const { data } = await supabase
       .from('assets')
       .select('*')
@@ -111,6 +115,7 @@ function NewDeadlineForm() {
       .order('name')
 
     setAssets(data || [])
+    setLoadingAssets(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -138,7 +143,7 @@ function NewDeadlineForm() {
           due_date: dueDate,
           frequency: frequency || null,
           notes: notes || null,
-          project_id: projectId || null,
+          project_id: projectId,
           asset_id: assetId || null,
           user_id: user.id,
         })
@@ -183,6 +188,20 @@ function NewDeadlineForm() {
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
           <AlertCircle className="h-5 w-5" />
           {error}
+        </div>
+      )}
+
+      {projects.length === 0 && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <span>Non hai ancora nessun progetto. <Link href="/projects/new" className="font-medium underline">Crea un progetto</Link> e poi un asset prima di aggiungere una scadenza.</span>
+        </div>
+      )}
+
+      {projectId && !loadingAssets && assets.length === 0 && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <span>Questo progetto non ha ancora nessun asset. <Link href="/assets/new" className="font-medium underline">Crea un asset</Link> prima di aggiungere una scadenza.</span>
         </div>
       )}
 
@@ -253,14 +272,15 @@ function NewDeadlineForm() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Progetto (opzionale)
+            Progetto *
           </label>
           <select
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
+            required
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           >
-            <option value="">Nessun progetto</option>
+            <option value="">Seleziona progetto</option>
             {projects.map((project) => (
               <option key={project.id} value={project.id}>
                 {project.name}
@@ -269,17 +289,21 @@ function NewDeadlineForm() {
           </select>
         </div>
 
-        {projectId && assets.length > 0 && (
+        {projectId && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Asset (opzionale)
+              Asset *
             </label>
             <select
               value={assetId}
               onChange={(e) => setAssetId(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              required
+              disabled={loadingAssets || assets.length === 0}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-400"
             >
-              <option value="">Nessun asset</option>
+              <option value="">
+                {loadingAssets ? 'Caricamento...' : assets.length === 0 ? 'Nessun asset disponibile' : 'Seleziona asset'}
+              </option>
               {assets.map((asset) => (
                 <option key={asset.id} value={asset.id}>
                   {asset.name}
@@ -305,7 +329,7 @@ function NewDeadlineForm() {
         <div className="flex items-center gap-3 pt-4">
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || projects.length === 0 || !projectId || loadingAssets || assets.length === 0 || !assetId}
             className="flex-1 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <Save className="h-5 w-5" />
