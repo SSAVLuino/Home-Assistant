@@ -12,8 +12,6 @@ export default function PlanBadge() {
   const [usage, setUsage] = useState({ projects: 0, assets: 0, deadlines: 0, valueLists: 0 })
   const [upgradeSuggestion, setUpgradeSuggestion] = useState<UpgradeSuggestion | null>(null)
   const [loading, setLoading] = useState(true)
-  const [expandedUpgrades, setExpandedUpgrades] = useState(false)
-  
   const supabase = createClient()
 
   useEffect(() => {
@@ -166,8 +164,8 @@ export default function PlanBadge() {
         <div className={`border-t px-3 py-2 bg-opacity-30 ${
           hasAnyUpgradeNeed ? 'bg-orange-100 border-orange-200' : 'bg-blue-100 border-blue-200'
         }`}>
-          {/* Toggle Button */}
-          <button
+          <Link
+            href="/upgrade"
             className="w-full flex items-center justify-between gap-2 text-left hover:opacity-75 transition-opacity"
           >
             <div className="flex items-center gap-2">
@@ -178,10 +176,8 @@ export default function PlanBadge() {
                 {hasAnyUpgradeNeed ? 'Upgrade consigliato' : 'Upgrade disponibili'}
               </span>
             </div>
-            <ChevronRight className={`h-3.5 w-3.5 transition-transform flex-shrink-0 ${
-              expandedUpgrades ? 'rotate-90' : ''
-            }`} />
-          </button>       
+            <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
+          </Link>       
         </div>
       )}
 
