@@ -1,116 +1,133 @@
-const CACHE_NAME = 'scadix-v2';
-const urlsToCache = [
-  '/',
-  '/dashboard',
-  '/projects',
-  '/assets',
-  '/deadlines',
-  '/manifest.json',
+const CACHE_NAME = 'scadix-static-v3';
+
+const STATIC_ASSETS = [
+  '/icons/icon-72x72.png',
+  '/icons/icon-96x96.png',
+  '/icons/icon-144x144.png',
   '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  '/icons/icon-512x512.png',
+  '/apple/apple-touch-icon.png',
+  '/manifest.json',
+  '/offline.html',
 ];
 
-// Install event - cache resources
+// ── Install: precache solo asset statici ────────────────────────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
-        // Aggiungi file uno alla volta per evitare errori se uno manca
-        return Promise.allSettled(
-          urlsToCache.map(url => 
-            cache.add(url).catch(err => console.log('Failed to cache:', url, err))
-          )
-        );
-      })
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.allSettled(
+        STATIC_ASSETS.map((url) =>
+          cache.add(url).catch((err) => console.warn('Failed to cache:', url, err))
+        )
+      )
+    )
   );
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// ── Activate: elimina cache vecchie ────────────────────────────────────────
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => {
+            console.log('Deleting old cache:', key);
+            return caches.delete(key);
+          })
+      )
+    )
   );
   self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// ── Fetch: strategia per tipo di richiesta ─────────────────────────────────
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
+  const { request } = event;
+  const url = new URL(request.url);
 
-        return fetch(event.request).then(
-          (response) => {
-            // Check if we received a valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
+  // 1. Richieste Supabase o API esterne → NETWORK ONLY (mai cachare)
+  if (
+    url.hostname.includes('supabase.co') ||
+    url.pathname.startsWith('/api/')
+  ) {
+    return; // lascia passare normalmente senza intercettare
+  }
 
-            // Clone the response
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
+  // 2. Asset statici (_next/static, icone, font) → CACHE FIRST
+  if (
+    url.pathname.startsWith('/_next/static/') ||
+    url.pathname.startsWith('/icons/') ||
+    url.pathname.startsWith('/apple/') ||
+    url.pathname.startsWith('/windows/') ||
+    url.pathname === '/manifest.json' ||
+    url.pathname === '/favicon.ico'
+  ) {
+    event.respondWith(
+      caches.match(request).then(
+        (cached) => cached || fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           }
-        ).catch(() => {
-          // If both cache and network fail, show offline page
-          return caches.match('/offline.html');
-        });
-      })
+          return response;
+        })
+      )
+    );
+    return;
+  }
+
+  // 3. Pagine app (navigazione HTML) → NETWORK FIRST con fallback offline
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(() => caches.match('/offline.html'))
+    );
+    return;
+  }
+
+  // 4. Tutto il resto → NETWORK FIRST senza cache
+  event.respondWith(
+    fetch(request).catch(() => caches.match('/offline.html'))
   );
 });
 
-// Background sync for offline actions
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-data') {
-    event.waitUntil(syncData());
-  }
-});
-
-async function syncData() {
-  // Implement background sync logic here
-  console.log('Syncing data in background');
-}
-
-// Push notifications support
+// ── Push notifications ─────────────────────────────────────────────────────
 self.addEventListener('push', (event) => {
-  const options = {
-    body: event.data ? event.data.text() : 'Nuova notifica da Scadix',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
-    vibrate: [200, 100, 200],
-    tag: 'scadix-notification',
-    requireInteraction: false
-  };
+  let data = { title: 'Scadix', body: 'Hai una nuova notifica', url: '/dashboard' };
+  try {
+    if (event.data) data = { ...data, ...event.data.json() };
+  } catch {
+    if (event.data) data.body = event.data.text();
+  }
 
   event.waitUntil(
-    self.registration.showNotification('Scadix', options)
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-72x72.png',
+      vibrate: [200, 100, 200],
+      tag: 'scadix-notification',
+      data: { url: data.url },
+    })
   );
 });
 
-// Notification click handler
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const url = event.notification.data?.url || '/dashboard';
   event.waitUntil(
-    clients.openWindow('/dashboard')
+    clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then((windowClients) => {
+        // Se c'è già una finestra aperta, la porta in primo piano
+        for (const client of windowClients) {
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
+            client.navigate(url);
+            return client.focus();
+          }
+        }
+        return clients.openWindow(url);
+      })
   );
 });
