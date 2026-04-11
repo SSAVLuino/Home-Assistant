@@ -1,15 +1,22 @@
 import './globals.css'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
 
+export const viewport: Viewport = {
+  themeColor: '#ea580c',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+}
+
 export const metadata: Metadata = {
   title: 'Scadix - Gestione Progetti e Scadenze',
   description: 'Sistema di gestione progetti, asset e scadenze',
   manifest: '/manifest.json',
-  themeColor: '#ea580c',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -28,12 +35,6 @@ export const metadata: Metadata = {
       { url: '/apple/icon-167x167.png', sizes: '167x167', type: 'image/png' },
       { url: '/apple/icon-180x180.png', sizes: '180x180', type: 'image/png' },
     ],
-  },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
   },
 }
 
