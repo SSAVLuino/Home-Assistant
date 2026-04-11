@@ -7,6 +7,7 @@ import { User, Mail, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 import { it } from 'date-fns/locale'
 import Image from 'next/image'
+import PushNotificationManager from '@/components/PushNotificationManager'
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null)
@@ -138,6 +139,16 @@ export default function SettingsPage() {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Notifiche */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">Notifiche</h2>
+          </div>
+          <div className="p-6">
+            <PushNotificationManager />
           </div>
         </div>
 
