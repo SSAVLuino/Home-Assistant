@@ -157,6 +157,13 @@ function NewAssetForm() {
             </div>
           )}
 
+          {projects.length === 0 && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg flex items-center gap-2 text-sm">
+              <AlertCircle className="h-5 w-5 shrink-0" />
+              <span>Non hai ancora nessun progetto. <Link href="/projects/new" className="font-medium underline">Crea un progetto</Link> prima di aggiungere un asset.</span>
+            </div>
+          )}
+
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
               Nome Asset *
@@ -230,8 +237,8 @@ function NewAssetForm() {
           <div className="flex items-center gap-4 pt-4">
             <button
               type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              disabled={loading || projects.length === 0}
+              className="flex items-center gap-2 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="h-5 w-5" />
               {loading ? 'Salvataggio...' : 'Salva Asset'}
