@@ -4,6 +4,7 @@ import { FolderKanban, Package, Calendar, AlertCircle, CheckCircle2, ArrowRight 
 import Link from 'next/link'
 import { format, parseISO, isBefore, addDays } from 'date-fns'
 import { it } from 'date-fns/locale'
+import PushActivationBanner from '@/components/PushActivationBanner'
 
 async function getDashboardData() {
   const supabase = createClient()
@@ -95,6 +96,12 @@ async function getDashboardData() {
     nextDeadlines = futureDeadlines || []
   }
 
+  const { count: notifyPushCount } = await supabase
+    .from('deadlines')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('notify_push', true)
+
   return {
     user,
     stats: {
@@ -104,11 +111,12 @@ async function getDashboardData() {
     },
     upcomingDeadlines: nextDeadlines,
     overdueDeadlines: overdueDeadlines || [],
+    hasNotifyPushDeadlines: (notifyPushCount || 0) > 0,
   }
 }
 
 export default async function DashboardPage() {
-  const { user, stats, upcomingDeadlines, overdueDeadlines } = await getDashboardData()
+  const { user, stats, upcomingDeadlines, overdueDeadlines, hasNotifyPushDeadlines } = await getDashboardData()
 
   return (
     <div className="p-3 sm:p-6 max-w-7xl mx-auto">
@@ -116,6 +124,11 @@ export default async function DashboardPage() {
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-sm sm:text-base text-gray-600 mt-1">Benvenuto, {user.email}</p>
+      </div>
+
+      {/* Push Activation Banner */}
+      <div className="mb-4">
+        <PushActivationBanner hasNotifyPushDeadlines={hasNotifyPushDeadlines} />
       </div>
 
       {/* Onboarding Banner */}
