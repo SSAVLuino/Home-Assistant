@@ -55,8 +55,8 @@ export default function EditProjectPage() {
 
       if (error) throw error
 
-      router.push(`/projects/${params.id}`)
       router.refresh()
+      router.push(`/projects/${params.id}`)
     } catch (error: any) {
       setError(error.message)
     } finally {

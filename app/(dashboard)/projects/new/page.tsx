@@ -44,8 +44,8 @@ export default function NewProjectPage() {
 
       if (error) throw error
 
-      router.push('/projects')
       router.refresh()
+      router.push('/projects')
     } catch (error: any) {
       setError(error.message)
     } finally {

@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, FolderKanban, Users } from 'lucide-react'
 import { format } from 'date-fns'
+
+export const dynamic = 'force-dynamic'
 import { it } from 'date-fns/locale'
 import DeleteProjectButton from './[id]/DeleteProjectButton'
 

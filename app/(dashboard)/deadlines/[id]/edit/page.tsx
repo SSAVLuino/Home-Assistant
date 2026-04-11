@@ -166,6 +166,7 @@ export default function EditDeadlinePage({ params }: { params: { id: string } })
 
       if (updateError) throw updateError
 
+      router.refresh()
       router.push(`/deadlines/${params.id}`)
     } catch (error: any) {
       console.error('Errore aggiornamento scadenza:', error)

@@ -150,8 +150,8 @@ function NewDeadlineForm() {
 
       if (insertError) throw insertError
 
-      router.push('/deadlines')
       router.refresh()
+      router.push('/deadlines')
     } catch (error: any) {
       setError(error.message)
     } finally {

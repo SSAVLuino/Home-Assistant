@@ -115,8 +115,8 @@ function NewAssetForm() {
 
       if (error) throw error
 
-      router.push('/assets')
       router.refresh()
+      router.push('/assets')
     } catch (error: any) {
       setError(error.message)
     } finally {

@@ -140,8 +140,8 @@ export default function EditAssetPage() {
 
       if (error) throw error
 
-      router.push(`/assets/${params.id}`)
       router.refresh()
+      router.push(`/assets/${params.id}`)
     } catch (error: any) {
       setError(error.message)
     } finally {
