@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { UserPlus, Trash2, Users, Shield } from 'lucide-react'
 import { loadValueLists } from '@/lib/valueListsHelper'
+import ConfirmModal from '@/components/ConfirmModal'
 
 interface Member {
   user_id: string
@@ -26,6 +27,7 @@ export default function ProjectMembers({ projectId, currentMembers, isOwner }: P
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [roles, setRoles] = useState<any[]>([])
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null)
   
   const router = useRouter()
   const supabase = createClient()
@@ -101,8 +103,6 @@ export default function ProjectMembers({ projectId, currentMembers, isOwner }: P
   }
 
   const handleRemoveMember = async (userId: string) => {
-    if (!confirm('Sei sicuro di voler rimuovere questo membro?')) return
-
     try {
       const { error } = await supabase
         .from('project_members')
@@ -141,6 +141,18 @@ export default function ProjectMembers({ projectId, currentMembers, isOwner }: P
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+      <ConfirmModal
+        isOpen={confirmRemoveId !== null}
+        title="Rimuovi membro"
+        message="Sei sicuro di voler rimuovere questo membro dal progetto?"
+        confirmLabel="Rimuovi"
+        danger
+        onConfirm={() => {
+          if (confirmRemoveId) handleRemoveMember(confirmRemoveId)
+          setConfirmRemoveId(null)
+        }}
+        onCancel={() => setConfirmRemoveId(null)}
+      />
       <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-gray-600" />
@@ -267,7 +279,7 @@ export default function ProjectMembers({ projectId, currentMembers, isOwner }: P
                   
                   {isOwner && (
                     <button
-                      onClick={() => handleRemoveMember(member.user_id)}
+                      onClick={() => setConfirmRemoveId(member.user_id)}
                       className="text-red-600 hover:text-red-700 p-1"
                       title="Rimuovi membro"
                     >

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { canEditValueLists } from '@/lib/limitsHelper'
 import { List, Plus, Edit2, Trash2, Save, X, Globe, User, Lock } from 'lucide-react'
 import Link from 'next/link'
+import ConfirmModal from '@/components/ConfirmModal'
 
 interface ValueListItem {
   id: string
@@ -30,6 +31,7 @@ export default function ValueListsPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [canEdit, setCanEdit] = useState(false)
   const [checkingPermissions, setCheckingPermissions] = useState(true)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   
   // Form state
   const [formValue, setFormValue] = useState('')
@@ -185,21 +187,20 @@ export default function ValueListsPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteRequest = (id: string) => {
     if (!canEdit) {
       alert('Non hai i permessi per modificare le value lists')
       return
     }
-
     const item = items.find(i => i.id === id)
-    
     if (item?.user_id === null) {
       alert('Non puoi eliminare i valori di default. Puoi solo personalizzarli.')
       return
     }
+    setConfirmDeleteId(id)
+  }
 
-    if (!confirm('Sei sicuro di voler eliminare questo valore personalizzato?')) return
-
+  const handleDelete = async (id: string) => {
     try {
       const { error } = await supabase
         .from('value_lists')
@@ -261,6 +262,18 @@ export default function ValueListsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <ConfirmModal
+        isOpen={confirmDeleteId !== null}
+        title="Elimina valore"
+        message="Sei sicuro di voler eliminare questo valore personalizzato?"
+        confirmLabel="Elimina"
+        danger
+        onConfirm={() => {
+          if (confirmDeleteId) handleDelete(confirmDeleteId)
+          setConfirmDeleteId(null)
+        }}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <div className="flex items-center gap-2 sm:gap-3 mb-2">
@@ -483,7 +496,7 @@ export default function ValueListsPage() {
                           
                           {item.user_id !== null && (
                             <button
-                              onClick={() => handleDelete(item.id)}
+                              onClick={() => handleDeleteRequest(item.id)}
                               className="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded"
                             >
                               <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
