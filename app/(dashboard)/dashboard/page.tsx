@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { FolderKanban, Package, Calendar, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { FolderKanban, Package, Calendar, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { format, parseISO, isBefore, addDays } from 'date-fns'
 import { it } from 'date-fns/locale'
@@ -117,6 +117,83 @@ export default async function DashboardPage() {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-sm sm:text-base text-gray-600 mt-1">Benvenuto, {user.email}</p>
       </div>
+
+      {/* Onboarding Banner */}
+      {(stats.projects === 0 || stats.assets === 0) && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-5">
+          <h2 className="text-base font-semibold text-blue-900 mb-4">
+            Prima di creare una scadenza, completa questi passi:
+          </h2>
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Step 1: Progetto */}
+            <div className={`flex-1 flex items-center gap-4 rounded-lg border p-4 ${
+              stats.projects > 0
+                ? 'bg-green-50 border-green-200'
+                : 'bg-white border-blue-300'
+            }`}>
+              <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
+                stats.projects > 0
+                  ? 'bg-green-500 text-white'
+                  : 'bg-blue-600 text-white'
+              }`}>
+                {stats.projects > 0 ? <CheckCircle2 className="h-5 w-5" /> : '1'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`font-medium text-sm ${stats.projects > 0 ? 'text-green-800 line-through' : 'text-gray-900'}`}>
+                  Crea un Progetto
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">Raggruppa i tuoi asset in un progetto</p>
+              </div>
+              {stats.projects === 0 && (
+                <Link
+                  href="/projects/new"
+                  className="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:text-blue-900"
+                >
+                  Vai <ArrowRight className="h-3 w-3" />
+                </Link>
+              )}
+            </div>
+
+            {/* Freccia separatore */}
+            <div className="hidden sm:flex items-center text-blue-300">
+              <ArrowRight className="h-5 w-5" />
+            </div>
+
+            {/* Step 2: Asset */}
+            <div className={`flex-1 flex items-center gap-4 rounded-lg border p-4 ${
+              stats.assets > 0
+                ? 'bg-green-50 border-green-200'
+                : stats.projects === 0
+                ? 'bg-gray-50 border-gray-200 opacity-50'
+                : 'bg-white border-blue-300'
+            }`}>
+              <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
+                stats.assets > 0
+                  ? 'bg-green-500 text-white'
+                  : stats.projects === 0
+                  ? 'bg-gray-300 text-white'
+                  : 'bg-blue-600 text-white'
+              }`}>
+                {stats.assets > 0 ? <CheckCircle2 className="h-5 w-5" /> : '2'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`font-medium text-sm ${stats.assets > 0 ? 'text-green-800 line-through' : 'text-gray-900'}`}>
+                  Crea un Asset
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">Aggiungi un asset al progetto</p>
+              </div>
+              {stats.assets === 0 && stats.projects > 0 && (
+                <Link
+                  href="/assets/new"
+                  className="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:text-blue-900"
+                >
+                  Vai <ArrowRight className="h-3 w-3" />
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-3 sm:gap-6 mb-8">
