@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { Plus, Calendar, AlertCircle, Filter, X, ChevronDown, ChevronUp, Pencil, Trash2, ExternalLink } from 'lucide-react'
+import { Plus, Calendar, AlertCircle, Filter, X, ChevronDown, ChevronUp, Pencil, ExternalLink } from 'lucide-react'
 import { format, parseISO, isBefore, isToday } from 'date-fns'
 import { it } from 'date-fns/locale'
 
@@ -433,10 +433,10 @@ export default function DeadlinesPage() {
                                 <button
                                   onClick={() => deleteDeadline(deadline.id)}
                                   disabled={isDeleting}
-                                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-red-300 hover:bg-red-50 transition-colors text-red-700 disabled:opacity-50"
+                                  title="Elimina"
+                                  className="flex items-center justify-center p-1.5 rounded-lg border border-red-300 hover:bg-red-50 transition-colors text-red-700 disabled:opacity-50"
                                 >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                  Elimina
+                                  <X className="h-4 w-4" />
                                 </button>
                               </>
                             )}
@@ -532,10 +532,10 @@ export default function DeadlinesPage() {
                                 <button
                                   onClick={() => deleteDeadline(deadline.id)}
                                   disabled={isDeleting}
-                                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-red-300 hover:bg-red-50 transition-colors text-red-700 disabled:opacity-50"
+                                  title="Elimina"
+                                  className="flex items-center justify-center p-1.5 rounded-lg border border-red-300 hover:bg-red-50 transition-colors text-red-700 disabled:opacity-50"
                                 >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                  Elimina
+                                  <X className="h-4 w-4" />
                                 </button>
                               </>
                             )}
